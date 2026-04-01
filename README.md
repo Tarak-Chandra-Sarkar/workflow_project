@@ -1,16 +1,29 @@
-Clean, production-ready multi-agent system while keeping it simple and plug-and-play.
+# Multi-Agent Pipeline Project
 
-This version gives you:
+A modular, plug-and-play **Python workflow pipeline** with multi-agent decision layers, AI/LLM-ready architecture, and modern monitoring capabilities.
 
-✅ Separate agents per intelligent step
+---
 
-✅ Clear logging & explainability
+## Features
 
-✅ Easy LLM upgrade later
+- Modular processes:
+  - `fetch` – deterministic data retrieval
+  - `clean` – basic and advanced cleaning
+  - `transform` – basic and advanced transformations
+  - `report` – multiple reporting styles
+- Multi-agent system:
+  - **Cleaning Agent**
+  - **Transformation Agent**
+  - **Reporting Agent**
+- Fully **runnable without AI**, but can plug in LLMs later
+- Async / parallel execution ready
+- FastAPI endpoint to trigger the pipeline
+- Streamlit dashboard for monitoring and live pipeline runs
+- Auto-saving pipeline outputs with history tracking
 
-✅ Still fully runnable without any AI dependency
+---
 
-🏗️ Final Architecture
+## Project Structure
 workflow_project/
 │
 ├── processes/
@@ -28,55 +41,75 @@ workflow_project/
 ├── orchestrator/
 │   └── pipeline.py
 │
+├── ui/
+│   └── dashboard_with_api.py
+│
+├── main.py
 ├── config.py
 ├── utils.py
-└── main.py
+├── requirements.txt
+└── outputs/
 
-🔥 What you now have (this is powerful)
-✅ Modular agents
-Each agent:
+---
 
-Makes decisions
+## Installation
 
-Logs reasoning
+### 1. Clone the repo:
 
-Can be upgraded independently
+```bash
+git clone https://github.com/Tarak-Chandra-Sarkar/workflow_project.git
+cd workflow_project
+```
 
-✅ Explainability (huge win)
-Output includes:
+### 2. Create a virtual environment:
+```bash
+python -m venv venv
+source venv/bin/activate  # Linux / macOS
+venv\Scripts\activate     # Windows
+```
 
-"decisions": {
-  "cleaning": {...},
-  "transformation": {...},
-  "reporting": {...}
-}
-✅ Plug-in AI anytime
-Replace any decide() with:
+### 3. Create a virtual environment:
+```bash
+pip install -r requirements.txt
+```
 
-LLM call
+## Usage
+### Run pipeline via script
+```bash
+python main.py
+```
+Outputs are saved automatically in outputs/.
 
-API
+### Run pipeline via API
+```bash
+uvicorn api_service:app --reload
+```
+### Access API endpoint:
+```bash
+GET http://127.0.0.1:8000/run
+```
+### Launch Streamlit Dashboard
+```bash
+streamlit run ui/dashboard_with_api.py
+```
 
-Heuristics
+## Features:
 
-🧠 Example future upgrade (LLM)
-Inside an agent:
+- Trigger pipeline
+- Live view of latest outputs
+- Tabs: Data / Agents / Report
+- Colored badges for fallback decisions
+- Interactive filtering by agent or country
 
-def decide(self, data):
-    prompt = f"Choose best transformation mode for: {data}"
-    response = call_llm(prompt)
+### Extending the Pipeline
+- Replace agent logic with AI/LLM models
+- Enable async / parallel execution
+- Add new processes or reports
+- Integrate with UI dashboards or monitoring services
 
-    return parse_response(response)
-
-🧾 Final takeaway
-You now have:
-
-🧠 Multi-agent decision layer
-⚙️ Deterministic execution layer
-🔌 LLM-ready architecture
-🔁 Async / parallel execution
-🌐 API service (FastAPI)
-📊 UI dashboard to monitor agents
-
-If you want next level, I can extend this into:
-🧠 True autonomous agent (looping + planning)
+## Requirements
+- Python 3.9+
+- FastAPI
+- Uvicorn
+- Streamlit
+- Requests
