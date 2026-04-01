@@ -1,4 +1,4 @@
-clean, production-ready multi-agent system while keeping it simple and plug-and-play.
+Clean, production-ready multi-agent system while keeping it simple and plug-and-play.
 
 This version gives you:
 
@@ -67,15 +67,6 @@ def decide(self, data):
     response = call_llm(prompt)
 
     return parse_response(response)
-⚠️ Production tips
-1. Add validation layer
-Agents should NOT directly mutate data blindly
-
-2. Add retry/fallback
-If agent fails → fallback to default logic
-
-3. Log everything
-Agent decisions = gold for debugging
 
 🧾 Final takeaway
 You now have:

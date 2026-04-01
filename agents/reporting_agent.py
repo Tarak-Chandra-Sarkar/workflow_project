@@ -1,16 +1,19 @@
 from agents.base import BaseAgent
 
 class ReportingAgent(BaseAgent):
+
     def decide(self, data):
         if len(data) > 2:
             decision = {
-                "style": "executive",
-                "reason": "Large dataset"
+                "action": "executive",
+                "reason": "Large dataset",
+                "confidence": 0.85
             }
         else:
             decision = {
-                "style": "summary",
-                "reason": "Small dataset"
+                "action": "summary",
+                "reason": "Small dataset",
+                "confidence": 0.7
             }
 
         self.log(decision["reason"])

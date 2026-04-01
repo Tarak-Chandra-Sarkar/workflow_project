@@ -1,3 +1,7 @@
+import logging
+
+logging.basicConfig(level=logging.INFO)
+
 class BaseAgent:
     def __init__(self, name):
         self.name = name
@@ -6,4 +10,4 @@ class BaseAgent:
         raise NotImplementedError
 
     def log(self, message):
-        print(f"[{self.name}] {message}")
+        logging.info(f"[{self.name}] {message}")

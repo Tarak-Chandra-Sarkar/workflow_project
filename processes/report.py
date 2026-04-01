@@ -1,7 +1,3 @@
-'''
-dynamic + manual-ready
-'''
-
 def generate_report(data, style="summary"):
     if style == "summary":
         return {
@@ -15,9 +11,4 @@ def generate_report(data, style="summary"):
     elif style == "executive":
         return f"Processed {len(data)} records across multiple regions."
 
-    else:
-        return data
-
-
-if __name__ == "__main__":
-    print("Run via main pipeline")
+    return data
