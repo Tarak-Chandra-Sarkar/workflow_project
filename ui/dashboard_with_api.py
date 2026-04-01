@@ -3,26 +3,26 @@ import requests
 from pathlib import Path
 import json
 from datetime import datetime
-import time
+import pandas as pd
 
-st.set_page_config(page_title="Multi-Agent Pipeline Dashboard", layout="wide")
+st.set_page_config(page_title="Pipeline Dashboard", layout="wide")
+st.title("🚀 Multi-Agent Pipeline Dashboard")
 
-st.title("🚀 Multi-Agent Pipeline Dashboard with Trigger")
-
-# FastAPI server URL (adjust if running remotely)
+# FastAPI server URL
 API_URL = "http://127.0.0.1:8000/run"
 
-# Outputs folder
+# Ensure outputs folder exists
 output_dir = Path("outputs")
 output_dir.mkdir(exist_ok=True)
 
-st.sidebar.header("Pipeline Controls")
+# ---------------- Sidebar ----------------
+st.sidebar.header("Controls")
 
-# Trigger pipeline button
+# Run pipeline button
 if st.sidebar.button("Run Pipeline"):
     with st.spinner("Running pipeline..."):
         try:
-            response = requests.get(API_URL, timeout=120)  # call FastAPI endpoint
+            response = requests.get(API_URL, timeout=120)
             if response.status_code == 200:
                 st.success("Pipeline completed successfully!")
                 result = response.json()
@@ -32,8 +32,7 @@ if st.sidebar.button("Run Pipeline"):
         except Exception as e:
             st.error(f"Error calling pipeline API: {e}")
 
-# Select pipeline run
-st.sidebar.markdown("### Select Pipeline Run")
+# Select previous pipeline run
 output_files = sorted(output_dir.glob("*.json"), reverse=True)
 if "latest_file" in st.session_state:
     selected_file = st.session_state["latest_file"]
@@ -41,42 +40,52 @@ else:
     selected_file = output_files[0].name if output_files else None
 
 selected_file = st.sidebar.selectbox(
-    "Choose output JSON", [f.name for f in output_files], index=0
+    "Select Pipeline Run",
+    [f.name for f in output_files],
+    index=0
 ) if output_files else None
 
 if not selected_file:
     st.warning("No pipeline outputs found. Run the pipeline first!")
     st.stop()
 
+# ---------------- Load Data ----------------
 selected_path = output_dir / selected_file
-
-# Load JSON data
 with open(selected_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
 st.subheader(f"Pipeline Run: {selected_file}")
 
-# Display summary metrics
-st.markdown("### ✅ Summary")
-st.write({
-    "Total Records": len(data["data"]),
-    "Report Type": data["report"].get("type", "N/A") if isinstance(data["report"], dict) else "Custom",
-    "History Length": len(data["history"])
-})
+# ---------------- Summary Metrics ----------------
+st.markdown("### 📊 Summary")
+col1, col2, col3, col4 = st.columns(4)
+col1.metric("Total Records", len(data["data"]))
+col2.metric("Countries", len(set(row["country"] for row in data["data"])))
+col3.metric("History Entries", len(data["history"]))
+col4.metric("Report Type", data["report"].get("type","N/A") if isinstance(data["report"], dict) else "Custom")
 
-# Display agent decisions
+# ---------------- Agent Decisions ----------------
 st.markdown("### 🤖 Agent Decisions")
 for record in data["history"]:
     timestamp = datetime.fromtimestamp(record["timestamp"]).strftime("%Y-%m-%d %H:%M:%S")
-    st.markdown(f"**{record['agent']}** at {timestamp}")
-    st.json(record["decision"])
-    st.write(f"Fallback Used: {record['fallback_used']}")
+    with st.expander(f"{record['agent']} @ {timestamp}"):
+        st.json(record["decision"])
+        st.info(f"Fallback Used: {record['fallback_used']}")
 
-# Show final data table
+# ---------------- Final Data ----------------
 st.markdown("### 🗂️ Final Data")
-st.dataframe(data["data"])
+df = pd.DataFrame(data["data"])
+st.dataframe(df)
 
-# Show final report
-st.markdown("### 📊 Final Report")
-st.markdown(f"**Executive Message:** {data['report'].get('message','')}")
-st.json(data["report"])
+# Optional quick charts
+st.markdown("### 📈 Quick Insights")
+cols = st.columns(2)
+if "age" in df.columns:
+    cols[0].bar_chart(df["age"])
+if "country" in df.columns:
+    cols[1].bar_chart(df["country"].value_counts())
+
+# ---------------- Final Report ----------------
+st.markdown("### 📑 Final Report")
+if "message" in data["report"]:
+    st.info(data["report"]["message"])

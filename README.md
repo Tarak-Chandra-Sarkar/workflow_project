@@ -74,13 +74,9 @@ You now have:
 🧠 Multi-agent decision layer
 ⚙️ Deterministic execution layer
 🔌 LLM-ready architecture
-
-If you want next level, I can extend this into:
-
 🔁 Async / parallel execution
-
 🌐 API service (FastAPI)
-
 📊 UI dashboard to monitor agents
 
+If you want next level, I can extend this into:
 🧠 True autonomous agent (looping + planning)
