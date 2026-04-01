@@ -24,6 +24,7 @@ A modular, plug-and-play **Python workflow pipeline** with multi-agent decision 
 ---
 
 ## Project Structure
+```
 workflow_project/
 │
 ├── processes/
@@ -49,6 +50,7 @@ workflow_project/
 ├── utils.py
 ├── requirements.txt
 └── outputs/
+```
 
 ---
 
