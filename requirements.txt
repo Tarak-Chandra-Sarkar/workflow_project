@@ -1,0 +1,8 @@
+# Web framework for API service
+fastapi
+
+# ASGI server to run FastAPI
+uvicorn[standard]
+
+# Optional: for environment variable management
+python-dotenv

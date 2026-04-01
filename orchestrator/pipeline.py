@@ -1,5 +1,8 @@
 import copy
 import time
+import asyncio
+import json
+from pathlib import Path
 
 from processes.fetch import fetch_data
 from processes.clean import basic_clean, advanced_clean
@@ -12,7 +15,7 @@ from agents.reporting_agent import ReportingAgent
 
 from utils import log_step
 
-
+# Safe decision function
 def safe_decide(agent, data, default):
     try:
         return agent.decide(data)
@@ -20,8 +23,12 @@ def safe_decide(agent, data, default):
         agent.log(f"Error: {e}, using fallback")
         return default
 
+# Async wrapper for agents
+async def run_agent(agent, data, default):
+    return safe_decide(agent, data, default)
 
-def run_pipeline():
+# Async pipeline
+async def run_pipeline_async(save_output=True):
     # Initialize context
     context = {
         "data": fetch_data(),
@@ -40,68 +47,75 @@ def run_pipeline():
     context["data"] = basic_clean(copy.deepcopy(context["data"]))
     log_step("After Basic Clean", context["data"])
 
-    # Step 3: Cleaning Decision
-    clean_decision = safe_decide(
-        cleaning_agent,
-        context["data"],
-        {"action": "basic_clean", "reason": "fallback", "confidence": 0.5}
+    # Step 3: Run all agents concurrently
+    clean_default = {"action": "basic_clean", "reason": "fallback", "confidence": 0.5}
+    transform_default = {"action": "basic", "reason": "fallback", "confidence": 0.5}
+    report_default = {"action": "summary", "reason": "fallback", "confidence": 0.5}
+
+    clean_decision, transform_decision, report_decision = await asyncio.gather(
+        run_agent(cleaning_agent, context["data"], clean_default),
+        run_agent(transform_agent, context["data"], transform_default),
+        run_agent(report_agent, context["data"], report_default),
     )
 
+    # Record decisions in history
+    timestamp = time.time()
     context["history"].append({
-    "agent": cleaning_agent.name,
-    "decision": clean_decision,
-    "fallback_used": clean_decision["reason"] == "fallback",
-    "timestamp": time.time()
+        "agent": cleaning_agent.name,
+        "decision": clean_decision,
+        "fallback_used": clean_decision["reason"] == "fallback",
+        "timestamp": timestamp
+    })
+    context["history"].append({
+        "agent": transform_agent.name,
+        "decision": transform_decision,
+        "fallback_used": transform_decision["reason"] == "fallback",
+        "timestamp": timestamp
+    })
+    context["history"].append({
+        "agent": report_agent.name,
+        "decision": report_decision,
+        "fallback_used": report_decision["reason"] == "fallback",
+        "timestamp": timestamp
     })
 
-    if clean_decision["action"] == "advanced_clean":
+    # Step 4: Apply cleaning decision
+    if clean_decision.get("action") == "advanced_clean":
         context["data"] = advanced_clean(copy.deepcopy(context["data"]))
         log_step("After Advanced Clean", context["data"])
 
-    # Step 4: Transformation Decision
-    transform_decision = safe_decide(
-        transform_agent,
-        context["data"],
-        {"action": "basic", "reason": "fallback", "confidence": 0.5}
-    )
-
-    context["history"].append({
-    "agent": transform_agent.name,
-    "decision": transform_decision,
-    "fallback_used": transform_decision["reason"] == "fallback",
-    "timestamp": time.time()
-    })
-
-    if transform_decision["action"] == "advanced":
+    # Step 5: Apply transformation decision
+    if transform_decision.get("action") == "advanced":
         context["data"] = transform_advanced(copy.deepcopy(context["data"]))
     else:
         context["data"] = transform_basic(copy.deepcopy(context["data"]))
 
     log_step("After Transformation", context["data"])
 
-    # Step 5: Reporting Decision
-    report_decision = safe_decide(
-        report_agent,
-        context["data"],
-        {"action": "summary", "reason": "fallback", "confidence": 0.5}
-    )
-
-    context["history"].append({
-        "agent": report_agent.name,
-        "decision": report_decision,
-        "fallback_used": report_decision["reason"] == "fallback",
-        "timestamp": time.time()
-    })
-
+    # Step 6: Generate report
     report = generate_report(
         context["data"],
-        style=report_decision["action"]
+        style=report_decision.get("action", "summary")
     )
-
     log_step("Final Report", report)
 
-    return {
+    final_output = {
         "data": context["data"],
         "report": report,
         "history": context["history"]
     }
+
+    # Step 7: Save output automatically
+    if save_output:
+        output_dir = Path("outputs")
+        output_dir.mkdir(exist_ok=True)
+        filename = output_dir / f"pipeline_output_{int(time.time())}.json"
+        with open(filename, "w", encoding="utf-8") as f:
+            json.dump(final_output, f, indent=4, ensure_ascii=False)
+        print(f"\n✅ Output saved to {filename}")
+
+    return final_output
+
+# Synchronous wrapper for compatibility
+def run_pipeline(save_output=True):
+    return asyncio.run(run_pipeline_async(save_output=save_output))
