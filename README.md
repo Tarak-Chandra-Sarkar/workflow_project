@@ -115,3 +115,6 @@ streamlit run ui/dashboard_with_api.py
 - Uvicorn
 - Streamlit
 - Requests
+
+## Demo Screenshots
+![alt text](images/image.png)
