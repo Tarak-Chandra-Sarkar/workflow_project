@@ -1,8 +1,10 @@
-# Web framework for API service
-fastapi
+# Core
+python-dotenv       # optional, for environment variable management
 
-# ASGI server to run FastAPI
-uvicorn[standard]
+# API
+fastapi             # Web framework for API
+uvicorn[standard]   # ASGI server for FastAPI
 
-# Optional: for environment variable management
-python-dotenv
+# Dashboard / UI
+streamlit           # Dashboard to monitor agents
+requests            # HTTP client to call FastAPI from Streamlit
