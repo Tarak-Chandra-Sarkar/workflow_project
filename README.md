@@ -118,3 +118,4 @@ streamlit run ui/dashboard_with_api.py
 
 ## Demo Screenshots
 ![alt text](images/image.png)
+![alt text](images/image_2.png)
