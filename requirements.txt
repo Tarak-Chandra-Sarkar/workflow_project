@@ -8,3 +8,5 @@ uvicorn[standard]   # ASGI server for FastAPI
 # Dashboard / UI
 streamlit           # Dashboard to monitor agents
 requests            # HTTP client to call FastAPI from Streamlit
+pandas
+streamlit-autorefresh
